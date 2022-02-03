@@ -1,5 +1,6 @@
+import base64
+import os
 from unittest.mock import patch, MagicMock
-from contextlib import contextmanager
 
 import pytest
 import responses
@@ -17,6 +18,20 @@ def nh():
             organization="organization", product="product", cert=cert, key=key
         )
         yield nh
+
+
+def resource_path(path):
+    return os.path.join(os.path.dirname(__file__), "resources", path)
+
+
+def key():
+    with open(resource_path("key_decrypted.pem"), "rb") as f:
+        return f.read()
+
+
+def cert():
+    with open(resource_path("cert.pem"), "rb") as f:
+        return f.read()
 
 
 def test_device_create(nh):
@@ -58,3 +73,29 @@ def test_device_cert_create(nh):
         status=200,
     )
     assert resp == nh.device_cert_create("123", b"my certificate")
+
+
+@patch.dict(
+    os.environ,
+    {
+        "NERVES_HUB_ORG": "org",
+        "NERVES_HUB_PRODUCT": "prod",
+        "NERVES_HUB_KEY": key().decode("utf-8"),
+        "NERVES_HUB_CERT": cert().decode("utf-8"),
+    },
+)
+def test_from_env():
+    NervesHubAPI.from_env()
+
+
+@patch.dict(
+    os.environ,
+    {
+        "NERVES_HUB_ORG": "org",
+        "NERVES_HUB_PRODUCT": "prod",
+        "NERVES_HUB_KEY": base64.b64encode(key()).decode("utf-8"),
+        "NERVES_HUB_CERT": base64.b64encode(cert()).decode("utf-8"),
+    },
+)
+def test_from_env_with_b64_encoded_key_and_cert():
+    NervesHubAPI.from_env()

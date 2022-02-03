@@ -1,4 +1,5 @@
 import base64
+import binascii
 import importlib.resources
 import os
 import os.path
@@ -75,13 +76,21 @@ class NervesHubAPI:
         """
         org = os.environ["NERVES_HUB_ORG"]
         product = os.environ["NERVES_HUB_PRODUCT"]
-        cert = load_pem_x509_certificate(bytes(os.environ["NERVES_HUB_CERT"], "utf-8"))
+        cert = load_pem_x509_certificate(cls._get_env_b64("NERVES_HUB_CERT"))
         key = serialization.load_pem_private_key(
-            bytes(os.environ["NERVES_HUB_KEY"], "utf-8"), None
+            cls._get_env_b64("NERVES_HUB_KEY"), None
         )
         base_url = os.environ.get("NERVES_HUB_BASE_URL")
         ca_cert = os.environ.get("NERVES_HUB_CA_CERT")
         return cls(org, product, cert, key, base_url, ca_cert)
+
+    @classmethod
+    def _get_env_b64(cls, key):
+        val = bytes(os.environ[key], "utf-8")
+        try:
+            return base64.b64decode(val, validate=True)
+        except binascii.Error:
+            return val
 
     @classmethod
     def _init_cert(cls, cert, key):

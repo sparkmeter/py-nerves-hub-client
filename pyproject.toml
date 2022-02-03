@@ -10,6 +10,7 @@ requests = "^2.27.1"
 cryptography = "^36.0.1"
 pyOpenSSL = "^22.0.0"
 ipython = "^7.0"
+pytest-mypy = "^0.9.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.0"
