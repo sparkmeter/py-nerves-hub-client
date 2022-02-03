@@ -3,8 +3,7 @@ import importlib.resources
 import os
 import os.path
 from tempfile import NamedTemporaryFile
-from tokenize import Name
-from typing import Optional, Any
+from typing import Optional, Any, List
 
 import requests
 from cryptography.x509 import load_pem_x509_certificate
@@ -168,7 +167,7 @@ class NervesHubAPI:
         self,
         identifier: str,
         description: Optional[str] = None,
-        tags: Optional[list[str]] = None,
+        tags: Optional[List[str]] = None,
     ) -> dict:
         """
         Create a new device
