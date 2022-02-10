@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nerves_hub_client"
-version = "0.2.0"
+version = "0.3.0"
 description = ""
 authors = ["Jon Thacker <jon@sparkmeter.io>"]
 
