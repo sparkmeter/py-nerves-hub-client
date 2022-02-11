@@ -17,6 +17,11 @@ responses = "^0.18.0"
 types-requests = "^2.27.8"
 black = "^22.1.0"
 ipython = "^7.0"
+pre-commit = "^2.17.0"
+pylint = "^2.12.2"
+
+[tool.pylint.'BASIC']
+good-names = ["f"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
