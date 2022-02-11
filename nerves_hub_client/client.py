@@ -8,11 +8,11 @@ import importlib.resources
 import os
 import os.path
 from tempfile import NamedTemporaryFile
-from typing import Optional, Any, List
+from typing import Any, List, Optional
 
 import requests
-from cryptography.x509 import load_pem_x509_certificate
 from cryptography.hazmat.primitives import serialization
+from cryptography.x509 import load_pem_x509_certificate
 
 from .exceptions import NervesHubAPIError
 
