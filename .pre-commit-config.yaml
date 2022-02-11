@@ -10,7 +10,13 @@ repos:
         pass_filenames: false
       - id: black
         name: black
-        entry: poetry run black nerves_hub_client tests
+        entry: poetry run black --check nerves_hub_client tests
+        language: system
+        always_run: true
+        pass_filenames: false
+      - id: isort
+        name: isort
+        entry: isort .
         language: system
         always_run: true
         pass_filenames: false
