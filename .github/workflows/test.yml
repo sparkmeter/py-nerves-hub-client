@@ -24,10 +24,7 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
           installer-parallel: true
-      - run: |
-          poetry run flake8 .
-          poetry run black . --check
-          poetry run isort .
+      - run: poetry run pre-commit run
   test:
     needs: linting
     strategy:
