@@ -20,6 +20,7 @@ ipython = "^7.0"
 pre-commit = "^2.17.0"
 pylint = "^2.12.2"
 isort = "^5.10.1"
+pytest-cov = "^3.0.0"
 
 [tool.pylint.'BASIC']
 good-names = ["f"]

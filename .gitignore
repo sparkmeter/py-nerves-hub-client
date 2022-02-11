@@ -2,3 +2,5 @@
 dist
 venv
 .python-version
+coverage.xml
+.coverage

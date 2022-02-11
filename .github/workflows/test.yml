@@ -98,4 +98,10 @@ jobs:
       #              run test suite
       #----------------------------------------------
       - name: Run tests
-        run: poetry run pytest tests coverage report
+        run: |
+          poetry run pytest \
+            --mypy \
+            --cov-report xml \
+            --cov-report term-missing \
+            --cov=nerves_hub_client \
+            tests
