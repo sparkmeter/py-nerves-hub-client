@@ -1,3 +1,7 @@
+"""
+NervesHub User API client
+"""
+
 import base64
 import binascii
 import importlib.resources
@@ -19,9 +23,11 @@ class NervesHubAPI:
     """
     NervesHub API client
 
-    The canonical implementation is in the Elixir project [nerves_hub_user_api](https://github.com/nerves-hub/nerves_hub_user_api).
+    The canonical implementation is in the Elixir project
+    [nerves_hub_user_api](https://github.com/nerves-hub/nerves_hub_user_api).
     """
 
+    # pylint: disable=too-many-arguments
     def __init__(
         self,
         organization: str,
@@ -104,7 +110,14 @@ class NervesHubAPI:
             serialization.PrivateFormat.PKCS8,
             serialization.NoEncryption(),
         )
+        # This implementation of using temporary files is due to a limitation of
+        # Python's SSL library handles client side certs and cert checking.
+        # It only supports passing in paths, not data.
+        # Needs to live for the lifetime of the class
+        #  pylint: disable=consider-using-with
         cert_file = NamedTemporaryFile()
+        # Needs to live for the lifetime of the class
+        #  pylint: disable=consider-using-with
         key_file = NamedTemporaryFile()
         cert_file.write(cert_data)
         cert_file.seek(0)
@@ -118,6 +131,7 @@ class NervesHubAPI:
         The CA Certificate is stored in temporary files because
         requests doesn't support passing them in directly from memory.
         """
+        #  pylint: disable=consider-using-with
         ca_cert_file = NamedTemporaryFile()
         ca_cert_file.write(ca_cert)
         ca_cert_file.seek(0)
@@ -130,11 +144,12 @@ class NervesHubAPI:
     def _common_kwargs(self):
         return dict(cert=self._cert_paths, verify=self._ca_cert_path)
 
-    def _raise_for_stats(self, resp):
+    @staticmethod
+    def _raise_for_stats(resp):
         try:
             resp.raise_for_status()
-        except requests.HTTPError as e:
-            raise NervesHubAPIError(e.response.status_code, str(e))
+        except requests.HTTPError as http_error:
+            raise NervesHubAPIError(str(http_error), resp.status_code) from http_error
 
     def _get(self, path):
         url = self._url(path)

@@ -23,6 +23,10 @@ api.device_list()
 
 ## Development
 
+```bash
+poetry run pre-commit install
+```
+
 ### Testing
 
 ```bash
