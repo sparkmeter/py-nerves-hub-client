@@ -1,6 +1,4 @@
-"""
-NervesHub User API client
-"""
+"""NervesHub User API client."""
 
 import base64
 import binascii
@@ -21,7 +19,7 @@ NERVES_HUB_BASE_URL_DEFAULT = "https://api.nerves-hub.org"
 
 class NervesHubAPI:
     """
-    NervesHub API client
+    NervesHub API client.
 
     The canonical implementation is in the Elixir project
     [nerves_hub_user_api](https://github.com/nerves-hub/nerves_hub_user_api).
@@ -38,6 +36,8 @@ class NervesHubAPI:
         ca_cert: Optional[bytes] = None,
     ):
         """
+        Initialize NervesHubAPI.
+
         Params
         ------
         organization
@@ -101,6 +101,8 @@ class NervesHubAPI:
     @classmethod
     def _init_cert(cls, cert, key):
         """
+        Initialize SSL client certificate.
+
         The certificate and key are stored in temporary files because
         requests doesn't support passing them in directly from memory.
         """
@@ -128,6 +130,8 @@ class NervesHubAPI:
     @classmethod
     def _init_ca_cert(cls, ca_cert):
         """
+        Initialize SSL CA Certificate used to verify the server.
+
         The CA Certificate is stored in temporary files because
         requests doesn't support passing them in directly from memory.
         """
@@ -180,9 +184,7 @@ class NervesHubAPI:
         return path
 
     def device_list(self) -> dict:
-        """
-        Get a list of devices
-        """
+        """Get a list of devices."""
         path = self._device_path()
         resp = self._get(path)
         return resp.json()
@@ -194,7 +196,7 @@ class NervesHubAPI:
         tags: Optional[List[str]] = None,
     ) -> dict:
         """
-        Create a new device
+        Create a new device.
 
         Params
         ------
@@ -220,7 +222,7 @@ class NervesHubAPI:
 
     def device_cert_create(self, identifier: str, cert: bytes) -> dict:
         """
-        Create a certificate for the specified device
+        Create a certificate for the specified device.
 
         Params
         ------
@@ -236,7 +238,7 @@ class NervesHubAPI:
 
     def device_cert_list(self, identifier: str) -> dict:
         """
-        Get the certificates associated with the specified device
+        Get the certificates associated with the specified device.
 
         Params
         ------
@@ -250,6 +252,7 @@ class NervesHubAPI:
     def device_delete(self, identifier: str) -> bool:
         """
         Delete the specified device.
+
         The device will still need to be "destroyed" in the UI before
         the identifier can be used again.
 
