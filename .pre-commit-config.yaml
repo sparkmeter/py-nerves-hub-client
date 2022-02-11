@@ -16,7 +16,7 @@ repos:
         pass_filenames: false
       - id: isort
         name: isort
-        entry: isort .
+        entry: isort --check-only .
         language: system
         always_run: true
         pass_filenames: false
