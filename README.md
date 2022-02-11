@@ -24,6 +24,7 @@ api.device_list()
 ## Development
 
 ```bash
+# Ensure linting passes before committing
 poetry run pre-commit install
 ```
 
@@ -31,4 +32,13 @@ poetry run pre-commit install
 
 ```bash
 poetry run pytest --mypy
+```
+
+### Manual lint
+
+Linting is run before each commit if you have the pre-commit installed, but
+you can run it manually with the following command.
+
+```bash
+poetry run pre-commit run
 ```
