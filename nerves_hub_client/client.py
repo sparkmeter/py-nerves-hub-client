@@ -167,6 +167,12 @@ class NervesHubAPI:
         self._raise_for_stats(resp)
         return resp
 
+    def _put(self, path, data):
+        url = self._url(path)
+        resp = requests.put(url, data, **self._common_kwargs())
+        self._raise_for_stats(resp)
+        return resp
+
     def _delete(self, path):
         url = self._url(path)
         resp = requests.delete(url, **self._common_kwargs())
@@ -218,6 +224,33 @@ class NervesHubAPI:
             "tags": tag_str,
         }
         resp = self._post(path, data)
+        return resp.json()
+
+    def device_update(
+        self,
+        identifier: str,
+        description: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+    ) -> dict:
+        """
+        Update an existing device parameters.
+
+        Params
+        ------
+        identifier
+            Unique identifier for the device
+        description
+            Text description of the device
+        tags
+            List of tags
+        """
+        params = {"identifier": identifier}
+        if description is not None:
+            params["description"] = description
+        if tags is not None:
+            params["tags"] = ",".join(tags)
+        path = self._device_path(identifier)
+        resp = self._put(path, params)
         return resp.json()
 
     def device_cert_create(self, identifier: str, cert: bytes) -> dict:
