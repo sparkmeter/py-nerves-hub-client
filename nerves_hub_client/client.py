@@ -86,8 +86,16 @@ class NervesHubAPI:
         key = serialization.load_pem_private_key(
             cls._get_env_b64("NERVES_HUB_KEY"), None
         )
-        base_url = os.environ.get("NERVES_HUB_BASE_URL")
-        ca_cert = os.environ.get("NERVES_HUB_CA_CERT")
+        base_url = os.environ.get("NERVES_HUB_BASE_URL", NERVES_HUB_BASE_URL_DEFAULT)
+
+        if "NERVES_HUB_CA_CERT" in os.environ:
+            ca_cert = cls._get_env_b64("NERVES_HUB_CA_CERT")
+        else:
+            if base_url != NERVES_HUB_BASE_URL_DEFAULT:
+                raise Exception(
+                    "NERVES_HUB_CA_CERT is required for self-hosted installations."
+                )
+            ca_cert = None
         return cls(org, product, cert, key, base_url, ca_cert)
 
     @classmethod
