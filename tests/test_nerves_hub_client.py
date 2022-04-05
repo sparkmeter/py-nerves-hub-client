@@ -1,5 +1,6 @@
 import base64
 import os
+import tempfile
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -12,10 +13,15 @@ from nerves_hub_client import NervesHubAPI, NervesHubAPIError
 @pytest.fixture
 def nh():
     cert = MagicMock(spec=Certificate)
+    ca_cert = MagicMock(spec=Certificate)
     key = MagicMock()
     with responses.mock, patch("nerves_hub_client.client.NamedTemporaryFile") as _f:
         nh = NervesHubAPI(
-            organization="organization", product="product", cert=cert, key=key
+            organization="organization",
+            product="product",
+            cert=cert,
+            key=key,
+            ca_cert=ca_cert,
         )
         yield nh
 
@@ -31,6 +37,11 @@ def key():
 
 def cert():
     with open(resource_path("cert.pem"), "rb") as f:
+        return f.read()
+
+
+def ca_cert():
+    with open(resource_path("ca_certs.pem"), "rb") as f:
         return f.read()
 
 
@@ -85,7 +96,64 @@ def test_device_cert_create(nh):
     },
 )
 def test_from_env():
-    NervesHubAPI.from_env()
+    nh = NervesHubAPI.from_env()
+    tempdir = tempfile.gettempdir()
+
+    assert nh._base_url == "https://api.nerves-hub.org"
+    assert nh._organization == "org"
+    assert nh._product == "prod"
+
+    # Not direcly used, but good to confirm it was written to disk correctly
+    assert nh._cert[0].read() == cert()
+
+    # Not sure how to check the key
+    # assert nh._cert[1].read() == key()
+
+    # Ensure the cert_paths are in the temp dir
+    for path in nh._cert_paths:
+        assert path.startswith(tempdir)
+
+    # Not direcly used, but good to confirm it was written to disk correctly
+    assert nh._ca_cert.read() == ca_cert()
+
+    # Ensure the ca_cert_path is also in the temp dir
+    assert nh._ca_cert_path.startswith(tempdir)
+
+
+@patch.dict(
+    os.environ,
+    {
+        "NERVES_HUB_BASE_URL": "https://api.example.org",
+        "NERVES_HUB_ORG": "org",
+        "NERVES_HUB_PRODUCT": "prod",
+        "NERVES_HUB_KEY": key().decode("utf-8"),
+        "NERVES_HUB_CERT": cert().decode("utf-8"),
+        "NERVES_HUB_CA_CERT": ca_cert().decode("utf-8"),
+    },
+)
+def test_from_env_self_hosted():
+    nh = NervesHubAPI.from_env()
+    tempdir = tempfile.gettempdir()
+
+    assert nh._base_url == "https://api.example.org"
+    assert nh._organization == "org"
+    assert nh._product == "prod"
+
+    # Not direcly used, but good to confirm it was written to disk correctly
+    assert nh._cert[0].read() == cert()
+
+    # Not sure how to check the key
+    # assert nh._cert[1].read() == key()
+
+    # Ensure the cert_paths are in the temp dir
+    for path in nh._cert_paths:
+        assert path.startswith(tempdir)
+
+    # Not direcly used, but good to confirm it was written to disk correctly
+    assert nh._ca_cert.read() == ca_cert()
+
+    # Ensure the ca_cert_path is also in the temp dir
+    assert nh._ca_cert_path.startswith(tempdir)
 
 
 @patch.dict(
@@ -98,4 +166,79 @@ def test_from_env():
     },
 )
 def test_from_env_with_b64_encoded_key_and_cert():
-    NervesHubAPI.from_env()
+    nh = NervesHubAPI.from_env()
+    tempdir = tempfile.gettempdir()
+
+    assert nh._base_url == "https://api.nerves-hub.org"
+    assert nh._organization == "org"
+    assert nh._product == "prod"
+
+    # Not direcly used, but good to confirm it was written to disk correctly
+    assert nh._cert[0].read() == cert()
+
+    # Not sure how to check the key
+    # assert nh._cert[1].read() == key()
+
+    # Ensure the cert_paths are in the temp dir
+    for path in nh._cert_paths:
+        assert path.startswith(tempdir)
+
+    # Not direcly used, but good to confirm it was written to disk correctly
+    assert nh._ca_cert.read() == ca_cert()
+
+    # Ensure the ca_cert_path is also in the temp dir
+    assert nh._ca_cert_path.startswith(tempdir)
+
+
+@patch.dict(
+    os.environ,
+    {
+        "NERVES_HUB_BASE_URL": "https://api.example.org",
+        "NERVES_HUB_ORG": "org",
+        "NERVES_HUB_PRODUCT": "prod",
+        "NERVES_HUB_KEY": base64.b64encode(key()).decode("utf-8"),
+        "NERVES_HUB_CERT": base64.b64encode(cert()).decode("utf-8"),
+        "NERVES_HUB_CA_CERT": base64.b64encode(ca_cert()).decode("utf-8"),
+    },
+)
+def test_from_env_with_b64_encoded_key_and_cert_self_hosted():
+    nh = NervesHubAPI.from_env()
+    tempdir = tempfile.gettempdir()
+
+    assert nh._base_url == "https://api.example.org"
+    assert nh._organization == "org"
+    assert nh._product == "prod"
+
+    # Not direcly used, but good to confirm it was written to disk correctly
+    assert nh._cert[0].read() == cert()
+
+    # Not sure how to check the key
+    # assert nh._cert[1].read() == key()
+
+    # Ensure the cert_paths are in the temp dir
+    for path in nh._cert_paths:
+        assert path.startswith(tempdir)
+
+    # Not direcly used, but good to confirm it was written to disk correctly
+    assert nh._ca_cert.read() == ca_cert()
+
+    # Ensure the ca_cert_path is also in the temp dir
+    assert nh._ca_cert_path.startswith(tempdir)
+
+
+@patch.dict(
+    os.environ,
+    {
+        "NERVES_HUB_BASE_URL": "https://api.example.org",
+        "NERVES_HUB_ORG": "org",
+        "NERVES_HUB_PRODUCT": "prod",
+        "NERVES_HUB_KEY": base64.b64encode(key()).decode("utf-8"),
+        "NERVES_HUB_CERT": base64.b64encode(cert()).decode("utf-8"),
+    },
+)
+def test_from_env_self_hosted_no_ca_cert():
+    with pytest.raises(Exception) as e:
+        NervesHubAPI.from_env()
+        assert (
+            e.message == "NERVES_HUB_CA_CERT is required for self-hosted installations."
+        )
