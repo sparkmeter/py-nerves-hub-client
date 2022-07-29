@@ -11,8 +11,7 @@ Set up your environment
 ```bash
 export NERVES_HUB_ORG="MY ORG"
 export NERVES_HUB_PRODUCT="MY PRODUCT"
-export NERVES_HUB_CERT="MY USER CERT"
-export NERVES_HUB_KEY="MY USER KEY"
+export NERVES_HUB_TOKEN="MY USER TOKEN"
 
 # If using a self-hosted NervesHub instance (optional)
 export NERVES_HUB_BASE_URL="https://my-nerveshub-domain"

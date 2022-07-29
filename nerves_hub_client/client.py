@@ -6,11 +6,9 @@ import importlib.resources
 import os
 import os.path
 from tempfile import NamedTemporaryFile
-from typing import Any, List, Optional
+from typing import List, Optional
 
 import requests
-from cryptography.hazmat.primitives import serialization
-from cryptography.x509 import load_pem_x509_certificate
 
 from .exceptions import NervesHubAPIError
 
@@ -30,8 +28,7 @@ class NervesHubAPI:
         self,
         organization: str,
         product: str,
-        cert: Any,
-        key: Any,
+        token: str,
         base_url: Optional[str] = None,
         ca_cert: Optional[bytes] = None,
     ):
@@ -44,10 +41,8 @@ class NervesHubAPI:
             NervesHub organization name
         product
             NervesHub product
-        cert
-            Client certificate
-        key
-            Client private key
+        token
+            Client token
         base_url
             NervesHub API base url
         ca_cert
@@ -55,7 +50,7 @@ class NervesHubAPI:
         """
         self._organization = organization
         self._product = product
-        self._cert, self._cert_paths = self._init_cert(cert, key)
+        self._token = token
         if base_url is None:
             base_url = NERVES_HUB_BASE_URL_DEFAULT
         self._base_url = base_url
@@ -76,16 +71,12 @@ class NervesHubAPI:
         * NERVES_HUB_BASE_URL - optional and defaults to https://api.nerves-hub.org
         * NERVES_HUB_ORG - selects the organization to use, required
         * NERVES_HUB_PRODUCT - selects the product in the organization to user, required
-        * NERVES_HUB_CERT - PEM encoded certificate string for API client
-        * NERVES_HUB_KEY - PEM encoded private key string for API client
+        * NERVES_HUB_TOKEN - client authentication token
         * NERVES_HUB_CA_CERT - PEM encoded CA Certificates for NERVES_HUB_BASE_URL, optional
         """
         org = os.environ["NERVES_HUB_ORG"]
         product = os.environ["NERVES_HUB_PRODUCT"]
-        cert = load_pem_x509_certificate(cls._get_env_b64("NERVES_HUB_CERT"))
-        key = serialization.load_pem_private_key(
-            cls._get_env_b64("NERVES_HUB_KEY"), None
-        )
+        token = os.environ["NERVES_HUB_TOKEN"]
         base_url = os.environ.get("NERVES_HUB_BASE_URL", NERVES_HUB_BASE_URL_DEFAULT)
 
         if "NERVES_HUB_CA_CERT" in os.environ:
@@ -96,7 +87,7 @@ class NervesHubAPI:
                     "NERVES_HUB_CA_CERT is required for self-hosted installations."
                 )
             ca_cert = None
-        return cls(org, product, cert, key, base_url, ca_cert)
+        return cls(org, product, token, base_url, ca_cert)
 
     @classmethod
     def _get_env_b64(cls, key):
@@ -105,35 +96,6 @@ class NervesHubAPI:
             return base64.b64decode(val, validate=True)
         except binascii.Error:
             return val
-
-    @classmethod
-    def _init_cert(cls, cert, key):
-        """
-        Initialize SSL client certificate.
-
-        The certificate and key are stored in temporary files because
-        requests doesn't support passing them in directly from memory.
-        """
-        cert_data = cert.public_bytes(serialization.Encoding.PEM)
-        key_data = key.private_bytes(
-            serialization.Encoding.PEM,
-            serialization.PrivateFormat.PKCS8,
-            serialization.NoEncryption(),
-        )
-        # This implementation of using temporary files is due to a limitation of
-        # Python's SSL library handles client side certs and cert checking.
-        # It only supports passing in paths, not data.
-        # Needs to live for the lifetime of the class
-        #  pylint: disable=consider-using-with
-        cert_file = NamedTemporaryFile()
-        # Needs to live for the lifetime of the class
-        #  pylint: disable=consider-using-with
-        key_file = NamedTemporaryFile()
-        cert_file.write(cert_data)
-        cert_file.seek(0)
-        key_file.write(key_data)
-        key_file.seek(0)
-        return ((cert_file, key_file), (cert_file.name, key_file.name))
 
     @classmethod
     def _init_ca_cert(cls, ca_cert):
@@ -154,7 +116,9 @@ class NervesHubAPI:
         return url
 
     def _common_kwargs(self):
-        return dict(cert=self._cert_paths, verify=self._ca_cert_path)
+        return dict(
+            headers={"Authorization": f"token {self._token}"}, verify=self._ca_cert_path
+        )
 
     @staticmethod
     def _raise_for_stats(resp):
